@@ -14,7 +14,6 @@ import numpy as np
 from scipy.integrate import simps, quad
 from numpy import pi, sqrt, log, log10, exp, power, abs
 from ag_conversion import P_ag, m_gamma
-from inspect import getargspec
 
 #=============================#
 # Initialization of Constants #
@@ -42,9 +41,9 @@ def L_size(L):
     L_size = L**-1.2 / ((10.**-0.2/-0.2) - (3.5**-0.2/-0.2))
     return L_size
 
-L_ICM = quad(lambda x: L_size(x) * x, 3.5, 10.)[0]
+L_icm = quad(lambda x: L_size(x) * x, 3.5, 10.)[0]
 """
-L_ICM = 6.08032 kpc to be the uniform size of the magnetic domain
+L_icm = 6.08032 kpc to be the uniform size of the magnetic domain
 """
 
 
@@ -112,28 +111,28 @@ def B_icm(r, B_ref=10.,
 # print(getargspec(B_icm))
   
 # ICM survival probability for photons
-def icm_Psurv(ma, g, r_ini, r_fin,
-              L=10.,
-              omega_Xrays=10.,
-              axion_ini_frac=0.,
-              smoothed=False,
-              method='product',
-              prob_func='norm_log',
-              Nr=501,
-              mu=1.,
-              
-              # B_icm parameters
-              B_ref=10.,
-              r_ref=0.,
-              eta=0.5,        
-              
-              # ne_2beta parameters
-              ne0=0.01,
-              rc_outer=100.,
-              beta_outer=1.,
-              f_inner=0.,
-              rc_inner=10.,
-              beta_inner=1.):
+def P_icm(ma, g, r_ini, r_fin,
+          L=10.,
+          omega_Xrays=10.,
+          axion_ini_frac=0.,
+          smoothed=False,
+          method='product',
+          prob_func='norm_log',
+          Nr=501,
+          mu=1.,
+           
+          # B_icm parameters
+          B_ref=10.,
+          r_ref=0.,
+          eta=0.5,        
+           
+          # ne_2beta parameters
+          ne0=0.01,
+          rc_outer=100.,
+          beta_outer=1.,
+          f_inner=0.,
+          rc_inner=10.,
+          beta_inner=1.):
     """
     ma : axion mass [eV]
     g : axion-photon coupling [GeV^-2]
@@ -142,7 +141,7 @@ def icm_Psurv(ma, g, r_ini, r_fin,
     L : ICM magnetic field domain size [kpc] (default: 10.)
     omega_Xrays : photon energy [keV] (default: 10.)
     axion_ini_frac : the initial intensity fraction of axions: I_axion/I_photon (default: 0.)
-    smoothed : whether sin^2 in conversion probability is smoothed out [bool] (default: False)
+    smoothed : whether the sin^2(kx/2) oscillate rapidly within a single domain [bool] (default: False)
     method : the integration method 'simps'/'quad'/'product' (default: 'product')
     prob_func : the form of the probability function: 'small_P'/'full_log'/'norm_log' [str] (default: 'norm_log')
     Nr : number of radius bins for Simpson integral (default: 501)
@@ -235,7 +234,7 @@ def icm_Psurv(ma, g, r_ini, r_fin,
         raise ValueError("Integral Method Error!")
 
 # Line-of-sight average of the photons ICM survival probability.
-def icm_los_Psurv(ma, g, r_low, r_up, 
+def P_icm_los(ma, g, r_low, r_up, 
                   L=10.,
                   omega_Xrays=10.,
                   axion_ini_frac=0.,
@@ -269,7 +268,7 @@ def icm_los_Psurv(ma, g, r_low, r_up,
     axion_ini_frac : the initial intensity fraction of axions: I_axion/I_photon (default: 0.)
     smoothed : whether sin^2 in conversion probability is smoothed out [bool] (default: False)
     method : the integration method 'simps'/'quad'/'product' (default: 'product')
-    prob_func : the form of the probability function: 'small_P' for the P<<1 limit, 'full_log' for log(1-1.5*P), and 'norm_log' for the normalized log: log(abs(1-1.5*P)) [str] (default: 'norm_log')
+    prob_func : the form of the probability function: 'small_P'/'full_log'/'norm_log' [str] (default: 'norm_log')
     Nr : number of radius bins, for the 'simps' methods (default: 501)
     los_method : the integration method along the line of sight 'simps'/'quad' (default: 'simps')
     los_Nr : number of radius bins along the line of sight, for the 'simps' methods (default: 501)
