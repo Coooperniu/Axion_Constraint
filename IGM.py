@@ -38,7 +38,7 @@ def H(Omega_L, z):
     return H
 
 # Comoving Distance [Mpc]
-def Comove_D(z, h = 0.7, Omega_L)
+def Comove_D(z, h = 0.7, Omega_L = 0.7):
     """
     z : redshift
     h : reduced Hubble parameter H0/100 [km/s/Mpc] (default: 0.7)
@@ -47,9 +47,11 @@ def Comove_D(z, h = 0.7, Omega_L)
     
     D_H = (c0 * 1.e-3) / (h * 1.e2) # Hubble Distance [Mpc] 
 
-    comoving_distance = D_H * quad(lambda z: 1./H(Omega_L, z), 0., z)[0]
+    comoving_distance = D_H * quad(lambda x: 1. / H(Omega_L, x), 0., z)[0]
 
     return comoving_distance
+
+# print(Comove_D(1))
 
 # Photon IGM survival probability
 def P_igm(ma, g, z,
@@ -76,9 +78,9 @@ def P_igm(ma, g, z,
     h : reduced Hubble parameter H0/100 [km/s/Mpc] (default: 0.7)
     Omega_L : cosmological constant fractional density (default: 0.7)
     axion_ini_frac : the initial intensity fraction of axions: I_axion/I_photon (default: 0.)
-    smoothed : whether sin^2 in conversion probability is smoothed out [bool] (default: False)
-    method : the integration method 'simps'/'quad'/'old' (default: 'simps')
-    prob_func : the form of the probability function: 'small_P' for the P<<1, 'full_log' for log(1-1.5*P), and 'norm_log' for the normalized log: log(abs(1-1.5*P)) [str] (default: 'norm_log')
+    smoothed : whether the sin^2(kx/2) oscillate rapidly within a single domain [bool] (default: False)
+    method : the integration method 'simps'/'quad'/'product' (default: 'product')
+    prob_func : the form of the probability function: 'small_P'/'full_log'/'norm_log' [str] (default: 'norm_log')
     Nz : number of redshift bins, for the 'simps' methods (default: 501)
     mu : signal strength (default: 1.)
     """
@@ -91,50 +93,54 @@ def P_igm(ma, g, z,
 								  omega = omega*(1.+x), 
 								  mg = mg*(1+x)**1.5, 
 								  smoothed=smoothed)
+       
+    ### integral ###
+
+    argument = 0.
+
+    if method == 'simps':
         
-        if method == 'simps':
-        
-            if z <= 1.e-10:
-                z_array = np.linspace(0., 1.e-10, Nz)
-            else:
-                z_array = np.linspace(0., z, Nz)
-
-            if prob_func == 'norm_log':
-                integrand = log(abs(1 - 1.5*P_gamma(z_array))) / H(Omega_L, z_array)
-            elif prob_func == 'small_P':
-                integrand = -1.5 * P_gamma(z_array / H(Omega_L, z_array)
-            elif prob_func == 'full_log':
-                integrand = log( 1 - 1.5 * P_gamma(z_array) ) / H(Omega_L, z_array)
-            else:
-                raise ValueError("Log Method Error!")
-
-            argument = (D_H/s) * simps(integrand, z_array) # argument of the exponential
-        
-        elif method == 'quad':
-
-            if prob_func == 'norm_log':
-                integrand = lambda x: log(abs(1 - 1.5*Pga(x))) / H(Omega_L, x)
-            elif prob_func == 'small_P':
-                integrand = lambda x: -1.5 * P_gamma(x) / H(Omega_L, x)
-            elif prob_func == 'full_log':
-                integrand = lambda x: log( 1 - 1.5 * P_gamma(x) ) / H(Omega_L, x)
-            else:
-                raise ValueError("Log Method Error!")
-
-            argument = (D_H / s) * quad(integrand, 0., z)[0]
-  
-        elif method == 'old':
-            
-            y = comoving_D(z, h=h, Omega_L=Omega_L) 
-            argument = -1.5 * (y/s) * P_gamma(z)
-            
-            #print("the method is old!")
-
+        if z <= 1.e-10:
+            z_array = np.linspace(0., 1.e-10, Nz)
         else:
-            raise ValueError("Function Method Error!")
+            z_array = np.linspace(0., z, Nz)
+        if prob_func == 'norm_log':
+            integrand = log(abs(1 - 1.5*P_gamma(z_array))) / H(Omega_L, z_array)
+        elif prob_func == 'small_P':
+            integrand = - 1.5 * P_gamma(z_array) / H(Omega_L, z_array)
+        elif prob_func == 'full_log':
+            integrand = log( 1 - 1.5 * P_gamma(z_array) ) / H(Omega_L, z_array)
+        else:
+            raise ValueError("Log Method Error!")
+
+        argument = (D_H/s) * simps(integrand, z_array) # argument of the exponential
+       
+    elif method == 'quad':
+
+        if prob_func == 'norm_log':
+            integrand = lambda x: log(abs(1 - 1.5*P_gamma(x))) / H(Omega_L, x)
+        elif prob_func == 'small_P':
+            integrand = lambda x: -1.5 * P_gamma(x) / H(Omega_L, x)
+        elif prob_func == 'full_log':
+            integrand = lambda x: log( 1 - 1.5 * P_gamma(x) ) / H(Omega_L, x)
+        else:
+            raise ValueError("Log Method Error!")
+
+        argument = (D_H / s) * quad(integrand, 0., z)[0]
+  
+    elif method == 'old':
+           
+        y = comoving_D(z, h=h, Omega_L=Omega_L) 
+        argument = -1.5 * (y/s) * P_gamma(z)
+           
+        #print("the method is old!")
+
+    else:
+        raise ValueError("Function Method Error!")
       
     P_survival = 1. - (1.-A)*(1.-exp(argument))
 
     return P_survival
 
-
+# Sanity Test
+# print(P_igm(1.3214621361,2.3214621361,3.3214621361, method='simps'), P_igm(1.3214621361,2.3214621361,3.3214621361, method='quad'))

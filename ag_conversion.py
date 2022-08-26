@@ -11,7 +11,7 @@
 
 from __future__ import division
 import numpy as np
-from numpy import sin, pi, sqrt, log, log10, exp, power    
+from numpy import abs, sin, pi, sqrt, log, log10, exp, power    
 import scipy as sp
 
 #=============================#
