@@ -106,7 +106,8 @@ def B_icm(r, B_ref=10.,
 
     return B_ref * (ne_r / ne_ref)**eta
 
-# print(B_icm(1, r_ref = 10))
+print(ne_2beta(1))
+print(B_icm(1))
 # print(getargspec(ne_2beta))
 # print(getargspec(B_icm))
   
@@ -166,7 +167,7 @@ def P_icm(ma, g, r_ini, r_fin,
     B_field = lambda x: B_icm(x, B_ref = B_ref,
                               r_ref = r_ref,
                               eta = eta, 
-							  ne0 = ne0,
+                              ne0 = ne0,
                               rc_outer = rc_outer,
                               beta_outer = beta_outer,
                               f_inner = f_inner,
@@ -293,11 +294,11 @@ def P_icm_los(ma, g, r_low, r_up,
                                            prob_func = prob_func,
                                            Nr = Nr,
                                            mu = mu,
-						   				   B_ref = B_ref,
-										   r_ref = r_ref,
-										   eta = eta,
-		                                   ne0 = ne0,
-										   rc_outer = rc_outer,
+                                           B_ref = B_ref,
+                                           r_ref = r_ref,
+                                           eta = eta,
+                                           ne0 = ne0,
+                                           rc_outer = rc_outer,
                                            beta_outer = beta_outer,
                                            f_inner = f_inner,
                                            rc_inner = rc_inner,
