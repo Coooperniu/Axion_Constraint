@@ -15,7 +15,7 @@ import scipy as sp
 from scipy.integrate import simps, quad
 
 
-from ag_conversion import 
+from ag_conversion import m_gamma, k, P_ag, P_survival 
 from IGM import H, Comove_D, P_igm
 from ICM import ne_2beta, B_icm, P_icm
 
@@ -188,16 +188,16 @@ def P_icm_los(ma, g, r_low, r_up,
     """
     
     # ICM electron number density [cm^-3]
-    ne = lambda x: ne_2beta(x, ne0 = ne0,
+    ne2 = lambda x: ne_2beta(x, ne0 = ne0,
                             rc_outer = rc_outer,
                             beta_outer = beta_outer,
                             f_inner = f_inner,
                             rc_inner = rc_inner,
-                            beta_inner = beta_inner)
+                            beta_inner = beta_inner) ** 2
 
-    P_gg_ne2 = lambda x: ne(x)**2, * P_icm(ma, g, x, r_up, 
+    P_gg_ne2 = lambda x: ne2(x) * P_icm(ma, g, x, r_up, 
                                            L=L,
-                                           omega_photon = omega_photon,
+                                           omega_Xrays = omega_Xrays,
                                            axion_ini_frac = axion_ini_frac,
                                            smoothed = smoothed,
                                            method = method,
@@ -218,7 +218,7 @@ def P_icm_los(ma, g, r_low, r_up,
     if los_method == 'quad': # this method requires functions
 
         num = quad(P_gg_ne2, r_low, r_up)[0]
-        den = quad(ne**2., r_low, r_up)[0]
+        den = quad(ne2, r_low, r_up)[0]
 
     elif los_method == 'simps': # this method requires arrays
         raise ValueError("Simpson Method is reqired!")
@@ -326,7 +326,7 @@ def ADD_mod(ma, g, z, h, Omega_L,
     
     eff_ADD = ADD(z, h = h, Omega_L = Omega_L) * prob_gg_CBM**2 / (prob_gg_Xray * prob_gg)
     
-    retunr eff_ADD
+    return eff_ADD
 
 
 #print("standard mu:", mu_mod(0.3,0.7,0.7))
