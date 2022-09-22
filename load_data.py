@@ -16,6 +16,7 @@ import scipy.linalg as la
 from numpy import pi, sqrt, log, log10, exp, power
 import pandas as pd
 import numexpr as ne
+from ag_conversion import m_gamma
 from collections import OrderedDict as od
 
 #===========#
@@ -257,7 +258,7 @@ def load_clusters(dir, cluster_data = "cluster_data.txt"):
                 cls_rc_out = np.append(cls_rc_out, float(this_line[10]))
                 cls_f = np.append(cls_f, float(this_line[12]))
                 cls_rc_in = np.append(cls_rc_in, float(this_line[14]))             
-                cls_Rvir = np.append(cls_Rvir, float(this_line[19]))
+                cls_Rvir = np.append(cls_Rvir, float(this_line[20]))
    
     # Convert the unit from arcsec to kpc
     cls_rc_out = cls_DA * cls_rc_out * 1.e3 * arcsec_rad 
@@ -277,8 +278,10 @@ def load_clusters(dir, cluster_data = "cluster_data.txt"):
 
     return (name, cls_z, cls_DA, cls_err, cls_asymm, cls_ne0, cls_beta, cls_rc_out, cls_f, cls_rc_in, cls_Rvir)
 
-# print(load_clusters("/Users/cooper/Axion/TProject/datasets")[3])
-
+#for ii in range(11):
+#    print(ii)
+#    print(load_clusters("/Users/cooper/Axion/TProject/datasets")[ii])
+#    print("========================================================")
 
 
 
@@ -287,7 +290,7 @@ def load_param(dir):
     load the parameter inputs from the .param files.
     """
 
-    term = {}
+    term = od()
     par_names = []
 
     with open(dir, 'r') as f:
@@ -325,13 +328,247 @@ def load_param(dir):
 # print(load_param("/Users/cooper/Axion/test/inputs/neg_sig_example.param"))
 
 
+def set_param_default(param, var):
+    """
+    set up the default values in the .param file
+    return: 
+    """
+  
+    #--------------#
+    # use datasets #
+    #--------------#
 
+    try:
+        param['use_Pantheon']
+    except KeyError:
+        param['use_Pantheon'] = False    
 
+    try:
+        param['use_SH0ES']
+    except KeyError:
+        param['use_SH0ES'] = False
 
+    try:
+        param['use_early']
+    except KeyError:
+        param['use_early'] = False
 
+    try:
+        param['use_TDCOSMO']
+    except KeyError:
+        param['use_TDCOSMO'] = False
 
+    try:
+        param['use_BOSSDR12']
+    except KeyError:
+        param['use_BOSSDR12'] = False
 
+    try:
+        param['use_BAOlowz']
+    except KeyError:
+        param['use_BAOlowz'] = False
 
+    try:
+        param['use_clusters']
+    except KeyError:
+        param['use_clusters'] = False
+
+    #---------------------#
+    # Function parameters #
+    #---------------------# 
+
+    try:
+        err_correct = param['err_correct']
+    except KeyError:
+        err_correct = True
+
+    try:
+        smoothed_IGM = param['smoothed_IGM']
+    except KeyError:
+        smoothed_IGM = False
+
+    try:
+        method_IGM = param['method_IGM']
+    except KeyError:
+        method_IGM = 'simps'
+
+    try:
+        Nz_IGM = param['Nz_IGM']
+    except KeyError:
+        Nz_IGM = 501
+
+    try:
+        prob_func_IGM = param['prob_func_IGM']
+    except KeyError:
+        prob_func_IGM = 'norm_log'
+
+    try:
+        omegaSN = param['omegaSN [eV]']
+    except KeyError:
+        omegaSN = 1.
+
+    try:
+        B_IGM = param['B_IGM [nG]']
+    except KeyError:
+        B_IGM = 1.
+
+    try:
+        ne_IGM = param['ne_IGM [1/cm3]']
+    except KeyError:
+        ne_IGM = 6.e-8
+
+    try:
+        s_IGM = param['s_IGM [Mpc]']
+    except KeyError:
+        s_IGM = 1.
+
+    try:
+        ICM_effect = param['ICM_effect']
+    except KeyError:
+        ICM_effect = False
+
+    try:
+        smoothed_ICM = param['smoothed_ICM']
+    except KeyError:
+        smoothed_ICM = True
+
+    try:
+        method_ICM = param['method_ICM']
+    except KeyError:
+        method_ICM = 'product'
+
+    #try:
+    #    return_arrays = param['return_arrays']
+    #except KeyError:
+    #    return_arrays = False
+
+    try:
+        prob_func_ICM = param['prob_func_ICM']
+    except KeyError:
+        prob_func_ICM = 'norm_log'
+
+    try:
+        Nr_ICM = param['Nr_ICM']
+    except KeyError:
+        Nr_ICM = 501
+
+    try:
+        los_method = param['los_method']
+    except KeyError:
+        los_method = 'quad'
+
+    #try:
+    #    los_use_prepared_arrays = params['los_use_prepared_arrays']
+    #except KeyError:
+    #    los_use_prepared_arrays = False
+
+    try:
+        los_Nr = param['los_Nr']
+    except KeyError:
+        los_Nr = 501
+
+    try:
+        omega_Xrays = param['omegaX [keV]']*1.e3
+    except KeyError:
+        omega_Xrays = 1.e4
+
+    try:
+        omega_CMB = param['omegaCMB [eV]']
+    except KeyError:
+        omega_CMB = 2.4e-4
+
+    try:
+        fixed_Rvir = param['fixed_Rvir']
+    except KeyError:
+        fixed_Rvir = False
+
+    try:
+        L_ICM = param['L_ICM [kpc]']
+    except KeyError:
+        L_ICM = L_avg
+
+    try:
+        mu = param['signal_strength']
+    except KeyError:
+        mu = 1.
+
+    try:
+        ICM_magnetic_model = param['ICM_magnetic_model']
+    except KeyError:
+        ICM_magnetic_model = 'A'
+
+    if ICM_magnetic_model == 'A':
+
+        r_low = 10.
+        B_ref = 25.
+        r_ref = 0.
+        eta = 0.7
+
+    elif ICM_magnetic_model == 'B':
+
+        r_low = 0.
+        B_ref = 7.5
+        r_ref = 25.
+        eta = 0.5
+
+    elif ICM_magnetic_model == 'C':
+
+        r_low = 0.
+        B_ref = 4.7
+        r_ref = 0.
+        eta = 0.5
+
+    #----------------------#
+    #  Keyword Dictionary  #
+    #----------------------#
+
+    pan_kwargs = {}
+    cluster_kwargs = {}    
+
+    if param['use_Pantheon']:
+
+        pan_kwargs = {'B':B_IGM,
+                      'mg':m_gamma(ne_IGM),
+                      's':s_IGM,
+                      'omega':omegaSN,
+                      'axion_ini_frac':0.,
+                      'smoothed':smoothed_IGM,
+                      'method':method_IGM,
+                      'prob_func':prob_func_IGM,
+                      'Nz':Nz_IGM,
+                      'mu':mu}
+    else:
+        pan_kwargs = None
+
+    if param['use_clusters']:
+
+        clusters_kwargs = {'omega_Xrays':omega_Xrays,
+                          'omega_CMB':omega_CMB,
+                          's_IGM':s_IGM,
+                          'B_IGM':B_IGM,
+                          'mg_IGM':m_gamma(ne_IGM),
+                          'smoothed_IGM':smoothed_IGM,
+                          'method_IGM':method_IGM,
+                          'prob_func_IGM':prob_func_IGM,
+                          'Nz_IGM':Nz_IGM,
+                          'ICM_effect':ICM_effect,
+                          'r_low':r_low,
+                          'L':L_ICM,
+                          'smoothed_ICM':smoothed_ICM,
+                          'method_ICM':method_ICM,
+                          'prob_func_ICM':prob_func_ICM,
+                          'Nr_ICM':Nr_ICM,
+                          'los_method':los_method,
+                          'los_Nr':los_Nr,
+                          'mu':mu,
+                          'B_ref':B_ref,
+                          'r_ref':r_ref,
+                          'eta':eta}
+
+    else:
+        clusters_kwargs = None
+
+    return pan_kwargs, clusters_kwargs
 
 
 

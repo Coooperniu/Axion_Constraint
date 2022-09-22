@@ -12,7 +12,7 @@
 from __future__ import division
 import numpy as np
 from scipy.integrate import simps, quad
-from numpy import pi, sqrt, log, log10, exp, power, abs
+from numpy import pi, cumprod, sqrt, log, log10, exp, power, abs
 from ag_conversion import P_ag, m_gamma
 
 #=============================#
@@ -103,13 +103,9 @@ def B_icm(r, B_ref=10.,
                       f_inner = f_inner,
                       rc_inner = rc_inner,
                       beta_inner = beta_inner)
+    B_icm = B_ref * (ne_r / ne_ref)**eta
+    return B_icm
 
-    return B_ref * (ne_r / ne_ref)**eta
-
-print(ne_2beta(1))
-print(B_icm(1))
-# print(getargspec(ne_2beta))
-# print(getargspec(B_icm))
   
 # ICM survival probability for photons
 def P_icm(ma, g, r_ini, r_fin,
@@ -193,9 +189,12 @@ def P_icm(ma, g, r_ini, r_fin,
         factors = 1. - 1.5 * P_Arr # the factors in each domain
 
         total_prod = factors.prod()
+        partial_prods = cumprod(factors[::-1])[::-1]
+
         P_survival = A + (1. - A) * total_prod
- 
-        return P_survival
+        P_partial = A + (1. - A) * partial_prods
+        
+        return (P_survival, P_partial, r_Arr)
 
     elif method == 'simps':
 
@@ -213,6 +212,7 @@ def P_icm(ma, g, r_ini, r_fin,
         integral = simps(integrand, rArr)
         P_survival = A + (1. - A)*exp(integral / L)
 
+#        print("P_icm_simps: ",P_survival)
         return P_survival
 
     elif method == 'quad':
@@ -229,6 +229,7 @@ def P_icm(ma, g, r_ini, r_fin,
         integral = quad(integrand, r_ini, r_fin)[0]
         P_survival = 1. - (1. - A)*(1. - exp(integral / L)) 
 
+#        print("P_icm_quad: ",P_survival)
         return P_survival
 
     else:

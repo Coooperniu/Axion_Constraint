@@ -86,7 +86,9 @@ def P_ag(ma, g, x, B=1., omega=1., mg=3.e-15, smoothed=False):
         osc = np.sin(arg)**2.
     else: # if the sine wave oscillates rapidly, the sin^2(kx/2) can be averaged to 1/2.
         osc = (1 - exp(-2*arg**2.))/2.
-    
+
+#    print("coeff * osc: ", coeff * osc)    
+
     return coeff * osc
 
 #print(P_ag(1.e-10,2.e-10,1,B=1., omega=1., mg=3.e-15, smoothed=False), P_ag(1.e-10,2.e-10,1,B=1., omega=1., mg=3.e-15, smoothed=True))

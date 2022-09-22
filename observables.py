@@ -10,10 +10,11 @@
 
 from __future__ import division
 import numpy as np
-from numpy import abs, sin, pi, sqrt, log, log10, exp, power
+from numpy import abs, sin, pi, sqrt, log, log10, exp, power, cumprod
 import scipy as sp
 from scipy.integrate import simps, quad
-
+from scipy.interpolate import interp1d
+import warnings
 
 from ag_conversion import m_gamma, k, P_ag, P_survival 
 from IGM import H, Comove_D, P_igm
@@ -43,8 +44,35 @@ G_nG = 1.e-9                    # [G/nG]
 # Functions #
 #===========#
 
+def Hubble(z, h0, OmL, unit='Mpc'):
+    if unit == 'Mpc':
+        res = h0*100.*sqrt(OmL + (1 - OmL) * (1 + z)**3)/(c0/1000.)
+    else:
+        res = h0*100.*sqrt(OmL + (1 - OmL) * (1 + z)**3)
+    return res
+
+
+
 # Angular Diameter Distance (ADD) [Mpc]
-def ADD(z, h = 0.7, Omega_L = 0.7):
+def Comove_D(z, h, Omega_L):
+    """
+    z : redshift
+    h : reduced Hubble parameter H0/100 [km/s/Mpc] (default: 0.7)
+    Omega_L : cosmological constant fractional density (default: 0.7)
+    """
+
+    D_H = (c0 * 1.e-3) / (h * 1.e2) # Hubble Distance [Mpc] 
+
+    comoving_distance = D_H * quad(lambda x: 1. / H(Omega_L, x), 0., z)[0]
+
+    return comoving_distance
+
+# print(Comove_D(1))
+
+
+
+
+def ADD(z, h, Omega_L):
     """
     z : redshift
     h : reduced Hubble parameter H0/100 [km/s/Mpc] (default: 0.7)
@@ -55,7 +83,12 @@ def ADD(z, h = 0.7, Omega_L = 0.7):
     
     return D_angular
 
-def D_Lum(z, h = 0.7, Omega_L = 0.7):
+#print(ADD(1))
+
+
+
+
+def D_Lum(z, h, Omega_L):
     """
     z : redshift
     h : reduced Hubble parameter H0/100 [km/s/Mpc] (default: 0.7)
@@ -65,6 +98,9 @@ def D_Lum(z, h = 0.7, Omega_L = 0.7):
     D_luminosity = Comove_D(z, h = h, Omega_L = Omega_L) * (1. + z)
 
     return D_luminosity
+
+
+
 
 # Distance Modulus 'mu' in the standard Lambda-CDM
 def mu_mod(z, h, Omega_L):
@@ -77,6 +113,9 @@ def mu_mod(z, h, Omega_L):
     std_mu = 25. + 5. * log10(D_Lum(z, h, Omega_L)) 
 
     return std_mu
+
+
+
 
 # Effective Distand Modulus 'eff_mu'
 def eff_mu_mod(ma, g, z,
@@ -130,19 +169,35 @@ def delta_mu(ma, g, z,
     parameters : same as eff_mu_mod
     """
 
-    delta = mu_mod(z, h = h , Omega_L = Omega_L) - eff_mu_mod(ma, g, z,
-                                                              s = s,
-                                                              B = B,
-                                                              omega = omega,
-                                                              mg = mg,
-                                                              h = h,
-                                                              Omega_L = Omega_L,
-                                                              axion_ini_frac = axion_ini_frac,
-                                                              smoothed = smoothed,
-                                                              method = method,
-                                                              prob_func = prob_func,
-                                                              Nz = Nz,
-                                                              mu = mu)
+#    delta = mu_mod(z, h = h , Omega_L = Omega_L) - eff_mu_mod(ma, g, z,
+#                                                              s = s,
+#                                                              B = B,
+#                                                              omega = omega,
+#                                                              mg = mg,
+#                                                              h = h,
+#                                                              Omega_L = Omega_L,
+#                                                              axion_ini_frac = axion_ini_frac,
+#                                                              smoothed = smoothed,
+#                                                              method = method,
+#                                                              prob_func = prob_func,
+#                                                              Nz = Nz,
+#                                                              mu = mu)
+    
+    delta = 2.5 * log10(P_igm(ma, g, z,
+                              s = s,
+                              B = B,
+                              omega = omega,
+                              mg = mg,
+                              h = h,
+                              Omega_L = Omega_L,
+                              axion_ini_frac = axion_ini_frac,
+                              smoothed = smoothed,
+                              method = method,
+                              prob_func = prob_func,
+                              Nz = Nz,
+                              mu = mu))
+
+#    print("delta_mu: ", delta)
     return delta
 
 def P_icm_los(ma, g, r_low, r_up, 
@@ -153,7 +208,7 @@ def P_icm_los(ma, g, r_low, r_up,
                   method='product',
                   prob_func='norm_log',
                   Nr=501,
-                  los_method='quad',
+                  los_method='simps',
                   los_Nr=501,
                   mu = 1.,
 
@@ -195,38 +250,67 @@ def P_icm_los(ma, g, r_low, r_up,
                             rc_inner = rc_inner,
                             beta_inner = beta_inner) ** 2
 
-    P_gg_ne2 = lambda x: ne2(x) * P_icm(ma, g, x, r_up, 
-                                           L=L,
-                                           omega_Xrays = omega_Xrays,
-                                           axion_ini_frac = axion_ini_frac,
-                                           smoothed = smoothed,
-                                           method = method,
-                                           prob_func = prob_func,
-                                           Nr = Nr,
-                                           mu = mu,
-                                           B_ref = B_ref,
-                                           r_ref = r_ref,
-                                           eta = eta,
-                                           ne0 = ne0,
-                                           rc_outer = rc_outer,
-                                           beta_outer = beta_outer,
-                                           f_inner = f_inner,
-                                           rc_inner = rc_inner,
-                                           beta_inner = beta_inner)
+#    P_gg_ne2 = lambda x: ne2(x) * 
+    _, pArr, rArr = P_icm(ma, g, r_low, r_up, 
+                          L=L,
+                          omega_Xrays = omega_Xrays,
+                          axion_ini_frac = axion_ini_frac,
+                          smoothed = smoothed,
+                          method = method,
+                          prob_func = prob_func,
+                          Nr = Nr,
+                          mu = mu,
+                          B_ref = B_ref,
+                          r_ref = r_ref,
+                          eta = eta,
+                          ne0 = ne0,
+                          rc_outer = rc_outer,
+                          beta_outer = beta_outer,
+                          f_inner = f_inner,
+                          rc_inner = rc_inner,
+                          beta_inner = beta_inner)
 
+    pfn = interp1d(rArr, pArr, fill_value='extrapolate')
+    P_gg_ne2 = lambda rr: ne2(rr) * pfn(rr)
+
+#    print("P_gg_ne2(1000): ", P_gg_ne2(1000))
 
     if los_method == 'quad': # this method requires functions
 
         num = quad(P_gg_ne2, r_low, r_up)[0]
         den = quad(ne2, r_low, r_up)[0]
+#        print("Lost Methed is quad")
 
     elif los_method == 'simps': # this method requires arrays
-        raise ValueError("Simpson Method is reqired!")
-    
+        
+#        print("Lost Methed is simps")        
+        low_idx = np.abs(rArr - r_low).argmin()
+        up_idx = np.abs(rArr - r_up).argmin()
+        los_rArr = rArr[low_idx:up_idx+1]
+        ne2_Arr = ne2(los_rArr)
+        P_gg_ne2_Arr = ne2_Arr * pArr[low_idx:up_idx+1]
+   
+#        print("low_idx:", low_idx, "up_idx:",up_idx)
+#        print("los_rArr:",los_rArr)
+#        print("ne2_Arr:",ne2_Arr)
+#        print("P_gg_ne2_Arr:",P_gg_ne2_Arr)
+
+        del low_idx, up_idx
+
+   
+        num = simps(P_gg_ne2_Arr, los_rArr)
+        den = simps(ne2_Arr, los_rArr)
+        del los_rArr, ne2_Arr, P_gg_ne2_Arr
+        
     # X-ray brightness due to the ICM effect
     S_x = num/den
-
+#    print("P_icm_los: ", S_x)
+#    print("==========================")
     return S_x
+
+
+
+
 
 # Effective ADDs
 def ADD_mod(ma, g, z, h, Omega_L,
@@ -310,10 +394,12 @@ def ADD_mod(ma, g, z, h, Omega_L,
                       Nz=Nz_IGM,
                       mu=mu)
 
-    prob_gg_CBM = P_igm(ma, g, z,
+#    print("prob_gg_Xray: ", prob_gg_Xray)
+
+    prob_gg_CMB = P_igm(ma, g, z,
                         s=s_IGM,
                         B=B_IGM,
-                        omega=omega_Xrays,
+                        omega=omega_CMB,
                         mg=mg_IGM,
                         h=h,
                         Omega_L=Omega_L,
@@ -324,12 +410,18 @@ def ADD_mod(ma, g, z, h, Omega_L,
                         Nz=Nz_IGM,
                         mu=mu)
     
-    eff_ADD = ADD(z, h = h, Omega_L = Omega_L) * prob_gg_CBM**2 / (prob_gg_Xray * prob_gg)
-    
-    return eff_ADD
+#    print("prob_gg_CMB: ", prob_gg_CMB)
+#    print("....................................")    
 
+    warnings.filterwarnings('ignore')
+
+    eff_ADD = prob_gg_CMB**2 / (prob_gg_Xray * prob_gg) 
+    return eff_ADD
 
 #print("standard mu:", mu_mod(0.3,0.7,0.7))
 #print("effective mu: " , eff_mu_mod(1.e-10,2.e-5,0.3))
 #print("difference: ", mu_mod(0.3,0.7,0.7)- eff_mu_mod(1.e-10,2.e-5,0.3))
 #print("delta mu: ", delta_mu(1.e-10,2.e-5,0.3))
+#print("ADD_mud: ", ADD_mod(1.e-14,1.e-11,1,0.7,0.7))
+#print("++++++++++++++++++++++++++")
+

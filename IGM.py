@@ -12,6 +12,7 @@
 from __future__ import division 
 import numpy as np
 from scipy.integrate import simps, quad
+import warnings
 from numpy import pi, sqrt, log, log10, exp, power
 from ag_conversion import P_ag
 
@@ -36,6 +37,8 @@ def H(Omega_L, z):
 
     H = sqrt(Omega_L + (1 - Omega_L) * (1. + z)**3.)
     return H
+
+#print(H(0.7,1)* (0.7 * 1.e2)/(c0 * 1.e-3))
 
 # Comoving Distance [Mpc]
 def Comove_D(z, h = 0.7, Omega_L = 0.7):
@@ -79,7 +82,7 @@ def P_igm(ma, g, z,
     Omega_L : cosmological constant fractional density (default: 0.7)
     axion_ini_frac : the initial intensity fraction of axions: I_axion/I_photon (default: 0.)
     smoothed : whether the sin^2(kx/2) oscillate rapidly within a single domain [bool] (default: False)
-    method : the integration method 'simps'/'quad'/'product' (default: 'product')
+    method : the integration method 'simps'/'quad' (default: 'simps')
     prob_func : the form of the probability function: 'small_P'/'full_log'/'norm_log' [str] (default: 'norm_log')
     Nz : number of redshift bins, for the 'simps' methods (default: 501)
     mu : signal strength (default: 1.)
@@ -101,9 +104,10 @@ def P_igm(ma, g, z,
     if method == 'simps':
         
         if z <= 1.e-10:
-            z_array = np.linspace(0., 1.e-10, Nz)
+            z_array = np.linspace(0., 1.e-10, int(Nz))
         else:
-            z_array = np.linspace(0., z, Nz)
+            z_array = np.linspace(0., z, int(Nz))
+
         if prob_func == 'norm_log':
             integrand = log(abs(1 - 1.5*P_gamma(z_array))) / H(Omega_L, z_array)
         elif prob_func == 'small_P':
@@ -114,7 +118,8 @@ def P_igm(ma, g, z,
             raise ValueError("Log Method Error!")
 
         argument = (D_H/s) * simps(integrand, z_array) # argument of the exponential
-       
+#        print("argument:", argument) 
+              
     elif method == 'quad':
 
         if prob_func == 'norm_log':
@@ -128,18 +133,16 @@ def P_igm(ma, g, z,
 
         argument = (D_H / s) * quad(integrand, 0., z)[0]
   
-    elif method == 'old':
-           
-        y = comoving_D(z, h=h, Omega_L=Omega_L) 
-        argument = -1.5 * (y/s) * P_gamma(z)
-           
-        #print("the method is old!")
-
     else:
         raise ValueError("Function Method Error!")
-      
-    P_survival = 1. - (1.-A)*(1.-exp(argument))
+    
+    warnings.filterwarnings('ignore')      
+    P_conv = (1. - A) * ( 1. - exp(argument))
+    P_survival = 1. - P_conv
 
+#    print("A: ",A)
+#    print("exp:",exp(argument))
+#    print("P_igm: ", P_survival)
     return P_survival
 
 # Sanity Test
