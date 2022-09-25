@@ -104,8 +104,13 @@ def B_icm(r, B_ref=10.,
                       rc_inner = rc_inner,
                       beta_inner = beta_inner)
     B_icm = B_ref * (ne_r / ne_ref)**eta
+#    print("B_icm: ", B_icm)
     return B_icm
 
+# print(ne_2beta(1))
+# print(B_icm(1))
+# print(getargspec(ne_2beta))
+# print(getargspec(B_icm))
   
 # ICM survival probability for photons
 def P_icm(ma, g, r_ini, r_fin,
@@ -194,6 +199,8 @@ def P_icm(ma, g, r_ini, r_fin,
         P_survival = A + (1. - A) * total_prod
         P_partial = A + (1. - A) * partial_prods
         
+#        print("P_icm_product: ",P_partial)
+#        print("r_Arr: ", r_Arr)
         return (P_survival, P_partial, r_Arr)
 
     elif method == 'simps':

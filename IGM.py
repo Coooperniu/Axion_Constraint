@@ -82,7 +82,7 @@ def P_igm(ma, g, z,
     Omega_L : cosmological constant fractional density (default: 0.7)
     axion_ini_frac : the initial intensity fraction of axions: I_axion/I_photon (default: 0.)
     smoothed : whether the sin^2(kx/2) oscillate rapidly within a single domain [bool] (default: False)
-    method : the integration method 'simps'/'quad' (default: 'simps')
+    method : the integration method 'simps'/'quad'/'product' (default: 'product')
     prob_func : the form of the probability function: 'small_P'/'full_log'/'norm_log' [str] (default: 'norm_log')
     Nz : number of redshift bins, for the 'simps' methods (default: 501)
     mu : signal strength (default: 1.)
@@ -133,6 +133,13 @@ def P_igm(ma, g, z,
 
         argument = (D_H / s) * quad(integrand, 0., z)[0]
   
+    elif method == 'old':
+           
+        y = comoving_D(z, h=h, Omega_L=Omega_L) 
+        argument = -1.5 * (y/s) * P_gamma(z)
+           
+        #print("the method is old!")
+
     else:
         raise ValueError("Function Method Error!")
     

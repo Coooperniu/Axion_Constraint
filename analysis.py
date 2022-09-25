@@ -23,9 +23,6 @@ import corner
 
 from load_data import load_param, set_param_default
 from emcee.autocorr import AutocorrError
-from axion_main import run_emcee_code
-
-
 
 
 def pltpath(dir, head='', ext='.pdf'):
@@ -46,41 +43,54 @@ def pltpath(dir, head='', ext='.pdf'):
         'corner_' + run_name + '.pdf')
 
 
-
-
 #=====================================#
 #            MAIN FUNCTION            #
 #=====================================#
 
 
-def make_corner(input_dir):
-
+if __name__ == '__main__':
     warnings.filterwarnings('error', 'overflow encountered')
     warnings.filterwarnings('error', 'invalid value encountered')
     warnings.filterwarnings('ignore')
      
-    directory = input_dir
+    argv = sys.argv[1:]
+      
+    help_msg = 'Usage: python axion_main.py [option] ... [arg] ...  \n' + \
+               '        -i : output directory (str) - The directory folder where the chains are saved.'
 
-    flg_i = True
+    try:
+        opts, args = getopt.getopt(argv, 'hi:')
+    except getopt.GetoptError:
+        raise Exception(help_msg)
+
+    flg_i = False
+
+    for opt, arg in opts:
+        if opt == '-h':
+            print(help_msg)
+            sys.exit()
+        elif opt == '-i':
+            directory = arg
+            flg_i = True
 
     log_path = os.path.join(directory, "chain.h5")
     samples = emcee.backends.HDFBackend(log_path, read_only=True)
     try:
         tau = samples.get_autocorr_time()
-#        print('auto correlation time = %s' % tau)
+        print('auto correlation time = %s' % tau)
     except AutocorrError as e:
-#        print('%s' % e)
+        print('%s' % e)
         tau = e.tau
-#        print('setting correlation time to the current estimate.')
+        print('setting correlation time to the current estimate.')
     
     # use auto-correlation time to estimate burnin here
     burnin = int(2*np.max(tau))
     thin = int(0.5*np.min(tau))
     samples = samples.get_chain(
         discard=burnin, flat=True, thin=thin)
-#    print("burn-in: {0}".format(burnin))
-#    print("thin: {0}".format(thin))
-#    print("flat chain shape: {0}".format(samples.shape))
+    print("burn-in: {0}".format(burnin))
+    print("thin: {0}".format(thin))
+    print("flat chain shape: {0}".format(samples.shape))
     try:
         all_samples = np.append(all_samples, samples, axis=0)
     except:
@@ -92,18 +102,16 @@ def make_corner(input_dir):
 
     pdim = len(var)
     mean = np.mean(samples, axis=0)
-#    print('mean = %s' % mean)
+    print('mean = %s' % mean)
 
     #----------------------------#
     #        Corner Plot         #
     #----------------------------#
 
-    # Plot for all scanning parameters 
     plt.figure(0)
-    labels = [r"$\Omega_\Lambda$", r"$h_0$", r"$\log\ m_a$", r"$\log\ g_a$"]
-
+    labels = [r"$\Omega_\Lambda$", r"$h$", r"$\log\ m_a$", r"$\log\ g_a$"]
     if 'M0' in var:
-        labels.append(r"$M_0$")
+        labels.append(r"$M$")
     if 'rs' in var:
         labels.append(r"$r_s^{drag}$")
 
@@ -141,6 +149,3 @@ def make_corner(input_dir):
     np.savetxt(pltpath(directory, head='corner_pts', ext='.txt'), v)
 
     plt.savefig(pltpath(directory, head='custom'))    
-
-
-

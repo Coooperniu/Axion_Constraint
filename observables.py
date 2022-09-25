@@ -44,14 +44,6 @@ G_nG = 1.e-9                    # [G/nG]
 # Functions #
 #===========#
 
-def Hubble(z, h0, OmL, unit='Mpc'):
-    if unit == 'Mpc':
-        res = h0*100.*sqrt(OmL + (1 - OmL) * (1 + z)**3)/(c0/1000.)
-    else:
-        res = h0*100.*sqrt(OmL + (1 - OmL) * (1 + z)**3)
-    return res
-
-
 
 # Angular Diameter Distance (ADD) [Mpc]
 def Comove_D(z, h, Omega_L):
@@ -85,7 +77,12 @@ def ADD(z, h, Omega_L):
 
 #print(ADD(1))
 
-
+def Hubble(z, h0, Omega_L, unit='Mpc'):
+    if unit == 'Mpc':
+        hubble = h0*100.*sqrt(Omega_L + (1 - Omega_L) * (1 + z)**3)/(c0/1000.)
+    else:
+        hubble = h0*100.*sqrt(Omega_L + (1 - Omega_L) * (1 + z)**3)
+    return hubble
 
 
 def D_Lum(z, h, Omega_L):
@@ -250,7 +247,6 @@ def P_icm_los(ma, g, r_low, r_up,
                             rc_inner = rc_inner,
                             beta_inner = beta_inner) ** 2
 
-#    P_gg_ne2 = lambda x: ne2(x) * 
     _, pArr, rArr = P_icm(ma, g, r_low, r_up, 
                           L=L,
                           omega_Xrays = omega_Xrays,
@@ -273,40 +269,28 @@ def P_icm_los(ma, g, r_low, r_up,
     pfn = interp1d(rArr, pArr, fill_value='extrapolate')
     P_gg_ne2 = lambda rr: ne2(rr) * pfn(rr)
 
-#    print("P_gg_ne2(1000): ", P_gg_ne2(1000))
-
     if los_method == 'quad': # this method requires functions
 
         num = quad(P_gg_ne2, r_low, r_up)[0]
         den = quad(ne2, r_low, r_up)[0]
-#        print("Lost Methed is quad")
 
     elif los_method == 'simps': # this method requires arrays
         
-#        print("Lost Methed is simps")        
         low_idx = np.abs(rArr - r_low).argmin()
         up_idx = np.abs(rArr - r_up).argmin()
         los_rArr = rArr[low_idx:up_idx+1]
         ne2_Arr = ne2(los_rArr)
         P_gg_ne2_Arr = ne2_Arr * pArr[low_idx:up_idx+1]
    
-#        print("low_idx:", low_idx, "up_idx:",up_idx)
-#        print("los_rArr:",los_rArr)
-#        print("ne2_Arr:",ne2_Arr)
-#        print("P_gg_ne2_Arr:",P_gg_ne2_Arr)
-
         del low_idx, up_idx
-
    
         num = simps(P_gg_ne2_Arr, los_rArr)
         den = simps(ne2_Arr, los_rArr)
         del los_rArr, ne2_Arr, P_gg_ne2_Arr
         
-    # X-ray brightness due to the ICM effect
     S_x = num/den
-#    print("P_icm_los: ", S_x)
-#    print("==========================")
     return S_x
+
 
 
 
@@ -374,7 +358,7 @@ def ADD_mod(ma, g, z, h, Omega_L,
                                    ne0=ne0, rc_outer=rc_outer, beta_outer=beta_outer, f_inner=f_inner, rc_inner=rc_inner, beta_inner=beta_inner)
 
         ini_ag_frac = (1. - prob_gg) / prob_gg
-
+#        print("prob_gg: ", prob_gg)
     else:
         
         prob_gg = 1.
@@ -412,9 +396,8 @@ def ADD_mod(ma, g, z, h, Omega_L,
     
 #    print("prob_gg_CMB: ", prob_gg_CMB)
 #    print("....................................")    
-
     warnings.filterwarnings('ignore')
-
+    # eff_ADD = ADD(z, h = h, Omega_L = Omega_L) * prob_gg_CBM**2 / (prob_gg_Xray * prob_gg)
     eff_ADD = prob_gg_CMB**2 / (prob_gg_Xray * prob_gg) 
     return eff_ADD
 

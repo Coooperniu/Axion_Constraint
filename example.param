@@ -1,0 +1,90 @@
+##############################
+###    Input Parameters    ###
+##############################
+
+
+#------------------------#
+#         Debug          # 
+#------------------------#
+
+verbose = 2
+debug = False
+
+#-------------------------#
+#     Datasets [Bool]     #
+#-------------------------#
+
+#use_TDCOSMO = True
+#use_SH0ES = True
+#use_early = False
+#use_Pantheon = True
+#use_BAO_DR12 = True
+#use_BAO_lowz = True
+#use_clusters = True
+
+#------------------------#
+#    data parameters     #
+#------------------------#
+
+err_correct = True
+fixed_Rvir = True
+
+#ICM_effect = False
+
+#------------------------#
+#     IGM parameters     #
+#------------------------#
+
+smoothed_IGM = False
+method_IGM = simps
+Nz_IGM = 101
+prob_func_IGM = norm_log
+B_IGM [nG] = 1.
+#s_IGM [Mpc] = 1.
+#ne_IGM [1/cm3] = 1.6e-8
+
+#------------------------#
+#     ICM parameters     #
+#------------------------#
+
+smoothed_ICM = False
+method_ICM = product
+prob_func_ICM = norm_log
+Nr_ICM = 501
+los_method = simps
+los_Nr = 501
+L_ICM [kpc] = 6.08
+#ICM_magnetic_model = C
+
+#------------------------#
+#    Signal Strength     #
+#------------------------#
+
+# signal strength (either +1 or -1)
+#signal_strength = -1.
+
+omegaX [keV] = 5.
+omegaCMB [eV] = 2.4e-4
+omegaSN [eV] = 1.
+
+#------------------------#
+#     Scanning Range     #
+#------------------------#
+
+# param = [init, low, up, sigma]
+
+OmL	    =  [0.6847,   0.6, 0.75,  0.015]
+h0      =  [  0.73,   0.6,  0.8,   0.02]
+logma	=  [   -14,   -17,  -11,   0.25]
+logga	=  [   -11,  -18.,  -8.,    0.1]
+M0      =  [ -19.3,   -21,  -18,    0.1]
+rs      =  [147.78,  120.,  160.,    1.]
+
+
+
+
+
+
+
+
+

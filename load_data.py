@@ -1,4 +1,4 @@
-##############################################################
+###############################################################
 ###              Loading Experimental Data Code             ###
 ###         for a trial project with Prof. Jiji Fan         ###
 ###                   by Cooper Niu, 2022                   ###
@@ -325,19 +325,34 @@ def load_param(dir):
     return (term, par_names)                
 
 
-# print(load_param("/Users/cooper/Axion/test/inputs/neg_sig_example.param"))
+
+
+def check_range(pars, key, param):
+    """
+    check whether the sampling data point is out of range
+    """
+     
+    out_of_range = False
+     
+    for i in range(len(pars)):
+        if pars[i] > param[key[i]+'_up'] or pars[i] < param[key[i]+'_low']:
+            out_of_range = True
+            break
+    return out_of_range
+
+
 
 
 def set_param_default(param, var):
     """
     set up the default values in the .param file
-    return: 
+    return: param 
     """
   
     #--------------#
     # use datasets #
     #--------------#
-
+    """
     try:
         param['use_Pantheon']
     except KeyError:
@@ -359,19 +374,20 @@ def set_param_default(param, var):
         param['use_TDCOSMO'] = False
 
     try:
-        param['use_BOSSDR12']
+        param['use_BAO_DR12']
     except KeyError:
-        param['use_BOSSDR12'] = False
+        param['use_BAO_DR12'] = False
 
     try:
-        param['use_BAOlowz']
+        param['use_BAO_lowz']
     except KeyError:
-        param['use_BAOlowz'] = False
+        param['use_BAO_lowz'] = False
 
     try:
         param['use_clusters']
     except KeyError:
         param['use_clusters'] = False
+    """
 
     #---------------------#
     # Function parameters #
@@ -412,20 +428,20 @@ def set_param_default(param, var):
     except KeyError:
         B_IGM = 1.
 
-    try:
-        ne_IGM = param['ne_IGM [1/cm3]']
-    except KeyError:
-        ne_IGM = 6.e-8
+#    try:
+#        ne_IGM = param['ne_IGM [1/cm3]']
+#    except KeyError:
+#        ne_IGM = 6.e-8
 
-    try:
-        s_IGM = param['s_IGM [Mpc]']
-    except KeyError:
-        s_IGM = 1.
+#    try:
+#        s_IGM = param['s_IGM [Mpc]']
+#    except KeyError:
+#        s_IGM = 1.
 
-    try:
-        ICM_effect = param['ICM_effect']
-    except KeyError:
-        ICM_effect = False
+#    try:
+#        ICM_effect = param['ICM_effect']
+#    except KeyError:
+#        ICM_effect = False
 
     try:
         smoothed_ICM = param['smoothed_ICM']
@@ -436,11 +452,6 @@ def set_param_default(param, var):
         method_ICM = param['method_ICM']
     except KeyError:
         method_ICM = 'product'
-
-    #try:
-    #    return_arrays = param['return_arrays']
-    #except KeyError:
-    #    return_arrays = False
 
     try:
         prob_func_ICM = param['prob_func_ICM']
@@ -457,18 +468,13 @@ def set_param_default(param, var):
     except KeyError:
         los_method = 'quad'
 
-    #try:
-    #    los_use_prepared_arrays = params['los_use_prepared_arrays']
-    #except KeyError:
-    #    los_use_prepared_arrays = False
-
     try:
         los_Nr = param['los_Nr']
     except KeyError:
         los_Nr = 501
 
     try:
-        omega_Xrays = param['omegaX [keV]']*1.e3
+        omega_Xrays = param['omegaX [keV]']*1.e3 #kev
     except KeyError:
         omega_Xrays = 1.e4
 
@@ -485,38 +491,38 @@ def set_param_default(param, var):
     try:
         L_ICM = param['L_ICM [kpc]']
     except KeyError:
-        L_ICM = L_avg
+        L_ICM = 6.08
 
-    try:
-        mu = param['signal_strength']
-    except KeyError:
-        mu = 1.
+#    try:
+#        mu = param['signal_strength']
+#    except KeyError:
+#        mu = 1.
 
-    try:
-        ICM_magnetic_model = param['ICM_magnetic_model']
-    except KeyError:
-        ICM_magnetic_model = 'A'
+#    try:
+#        ICM_magnetic_model = param['ICM_magnetic_model']
+#    except KeyError:
+#        ICM_magnetic_model = 'A'
 
-    if ICM_magnetic_model == 'A':
+#    if ICM_magnetic_model == 'A':
 
-        r_low = 10.
-        B_ref = 25.
-        r_ref = 0.
-        eta = 0.7
+#        r_low = 10.
+#        B_ref = 25.
+#        r_ref = 0.
+#        eta = 0.7
 
-    elif ICM_magnetic_model == 'B':
-
-        r_low = 0.
-        B_ref = 7.5
-        r_ref = 25.
-        eta = 0.5
-
-    elif ICM_magnetic_model == 'C':
-
-        r_low = 0.
-        B_ref = 4.7
-        r_ref = 0.
-        eta = 0.5
+#    elif ICM_magnetic_model == 'B':
+#
+#        r_low = 0.
+#        B_ref = 7.5
+#        r_ref = 25.
+#        eta = 0.5
+#
+#    elif ICM_magnetic_model == 'C':
+#
+#        r_low = 0.
+#        B_ref = 4.7
+#        r_ref = 0.
+#        eta = 0.5
 
     #----------------------#
     #  Keyword Dictionary  #
