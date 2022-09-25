@@ -10,7 +10,7 @@ import sys
 
 from axion_main import run_emcee_code
 from analysis_main import make_corner
-
+from lkl_ratio import run_lkl_ratio
 
 
 if __name__ == '__main__':
@@ -24,10 +24,11 @@ if __name__ == '__main__':
                'Options and arguments (and corresponding environment variables): \n' + \
                '        -n : nwalkers (int) – The number of walkers in the ensemble. \n' + \
                '        -w : nsteps (int) - The number of steps to run. \n' + \
-               '             Iterate sample() for nsteps iterations and return the result.'
+               '             Iterate sample() for nsteps iterations and return the result. \n' + \
+               '        -b : nbins (int) - The number of ma-ga contour bins.'
 
     try:
-        opts, args = getopt.getopt(argv, 'hn:o:d:i:w:')
+        opts, args = getopt.getopt(argv, 'hn:w:b:')
     except getopt.GetoptError:
         raise Exception(help_msg)   
 
@@ -44,6 +45,9 @@ if __name__ == '__main__':
         elif opt == '-w':
             nwalkers = int(arg)
             flg_w = True
+        elif opt == '-b':
+            nbins = int(arg)
+            flg_b = True
 
     count = 0
     data_set = ['early', 'late']
@@ -56,24 +60,33 @@ if __name__ == '__main__':
     for d in data_set:
         for n in ne_IGM:
             for m in model:
-                for i in mu:
-                    print("Run No. [", count, ']')
-                    print('##################################################')
-                    count += 1
+                print("Run No. [", count, ']')
+                print('##################################################')
+                count += 1
                         
-                    output_dir = run_emcee_code(data_combo = d, 
-                                                ICM_magnetic_model = m, 
-                                                ne_IGM = n, 
-                                                s_IGM = 1., 
-                                                mu = i,
-                                                nwalkers = nwalkers, 
-                                                nsteps = nsteps)
-                        
-                    make_corner(output_dir)
+                output_dir_neg = run_emcee_code(data_combo = d, 
+                                            ICM_magnetic_model = m, 
+                                            ne_IGM = n * 1e-08, 
+                                            s_IGM = 1., 
+                                            mu = -1,
+                                            nwalkers = nwalkers, 
+                                            nsteps = nsteps)
+
+                output_dir_pos = run_emcee_code(data_combo = d, 
+                                            ICM_magnetic_model = m, 
+                                            ne_IGM = n * 1e-08, 
+                                            s_IGM = 1., 
+                                            mu = 1,
+                                            nwalkers = nwalkers, 
+                                            nsteps = nsteps)                        
+                    
+                make_corner(output_dir_neg)
+                make_corner(output_dir_pos)
+                run_lkl_ratio(nbin = nbins, pdir = str(output_dir_pos), ndir =str(output_dir_neg))
                         
 
     print(count)
-
+    print("This Super Big Run is finished! Finally!")
 
 
 
