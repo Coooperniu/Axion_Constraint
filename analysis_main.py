@@ -31,19 +31,15 @@ from axion_main import run_emcee_code
 def pltpath(dir, head='', ext='.pdf'):
     path = os.path.join(dir, 'plots')
 
-    run_name = str(dir).rstrip('/')
-    run_name = run_name.split('/')[-1]
-
     try:
         os.makedirs(path)
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
     if bool(head):
-        return os.path.join(path, head + '_' + run_name + ext)
+        return os.path.join(path, head + '_' + ext)
     else:
-        return os.path.join(path,
-        'corner_' + run_name + '.pdf')
+        return os.path.join(path, 'corner.pdf')
 
 
 
