@@ -53,36 +53,35 @@ if __name__ == '__main__':
     data_set = ['early', 'late']
     model = ['False', 'A', 'B', 'C']
     ne_IGM = [1.6, 3.0]
-    s_IGM = [0.1, 1., 10.]
+    s_IGM = [0.1, 10.]
     mu = [-1, 1]
 
     # run over all possible combinations of variable parameters 
-    for d in data_set:
-        for n in ne_IGM:
-            for m in model:
-                print("Run No. [", count, ']')
-                print('##################################################')
-                count += 1
-                        
-                output_dir_neg = run_emcee_code(data_combo = d, 
-                                            ICM_magnetic_model = m, 
-                                            ne_IGM = n * 1e-08, 
-                                            s_IGM = 1., 
+    for d in data_set:  #2
+        for s in s_IGM:  #3
+            print("Run No. [", count, ']')
+            print('##################################################')
+            count += 1
+                       
+            output_dir_neg = run_emcee_code(data_combo = d, 
+                                            ICM_magnetic_model = 'False', 
+                                             ne_IGM = 1.6 * 1e-08, 
+                                            s_IGM = s, 
                                             mu = -1,
                                             nwalkers = nwalkers, 
                                             nsteps = nsteps)
+            make_corner(output_dir_neg)
 
-                output_dir_pos = run_emcee_code(data_combo = d, 
-                                            ICM_magnetic_model = m, 
-                                            ne_IGM = n * 1e-08, 
-                                            s_IGM = 1., 
+            output_dir_pos = run_emcee_code(data_combo = d, 
+                                            ICM_magnetic_model = 'False', 
+                                            ne_IGM = 1.6 * 1e-08, 
+                                            s_IGM = s, 
                                             mu = 1,
                                             nwalkers = nwalkers, 
                                             nsteps = nsteps)                        
                     
-                make_corner(output_dir_neg)
-                make_corner(output_dir_pos)
-                run_lkl_ratio(nbin = nbins, pdir = str(output_dir_pos), ndir =str(output_dir_neg))
+            make_corner(output_dir_pos)
+            run_lkl_ratio(nbin = nbins, pdir = str(output_dir_pos), ndir =str(output_dir_neg))
                         
 
     print(count)
