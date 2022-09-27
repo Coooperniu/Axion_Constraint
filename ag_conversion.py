@@ -1,7 +1,7 @@
 ##################################################################
-###	   		 axion-photon conversion probabilities 		       ###
-###	        for a trial project with Prof. Jiji Fan 	       ###
-###                      by Cooper Niu, 2022			       ###
+###	       axion-photon conversion probabilities  	       ###
+###	       for a trial project with Prof. Jiji Fan 	       ###
+###                     by Cooper Niu, 2022		       ###
 ##################################################################
 
 
@@ -26,13 +26,13 @@ me = (0.51099895 * 1.e6) 		# [eV] electron mass
 # Unit Conversions #
 #==================#
 
-cm_m = 1.e2						# [cm/m]
-eV_GeV = 1.e9					# [eV/GeV]
+cm_m = 1.e2				# [cm/m]
+eV_GeV = 1.e9				# [eV/GeV]
 m_Mpc = 3.085677581282e22		# [m/Mpc]
-hbarc = 1.9732698045930252e-16	# Length Conversion from GeV^-1 to m [GeV*m]
+hbarc = 1.9732698045930252e-16	        # Length Conversion from GeV^-1 to m [GeV*m]
 eV_kg = 5.6095886e35 			# Mass Conversion from kg to eV [eV/kg]
-eV2_G = 1.95e-2                 # Magnetic Field Strength Conversion from Gauss to eV^2 [eV^2/G]
-G_nG = 1.e-9					# [G/nG]
+eV2_G = 1.95e-2                         # Magnetic Field Strength Conversion from Gauss to eV^2 [eV^2/G]
+G_nG = 1.e-9				# [G/nG]
 
 #===========#
 # Functions #
@@ -62,7 +62,7 @@ def k(ma, g, B=1., omega=1., mg=3.e-15):
     d_a = ma**2. / (2. * omega)					# Delta_a [eV]
     d_g = mg**2. / (2. * omega)					# Delta_gamma [eV]
 
-    k = sqrt(d_a_g**2. + (d_a - d_g)**2.)		# wavenumber 
+    k = sqrt(d_a_g**2. + (d_a - d_g)**2.)		        # wavenumber 
 	
     return k #[eV]
 
